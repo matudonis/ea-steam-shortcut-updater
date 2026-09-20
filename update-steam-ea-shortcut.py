@@ -107,6 +107,12 @@ def find_newest_version():
 
     return versions[-1][1]
 
+
+def quote_steam_path(path):
+    """Format a filesystem path as a quoted Steam shortcut value."""
+    return f"\"{path}\""
+
+
 def update_shortcut(new_version_dir):
     """Update the EA Games Steam shortcut."""
 
@@ -137,8 +143,11 @@ def update_shortcut(new_version_dir):
         old_exe = shortcut.get("Exe", "")
         old_start_dir = shortcut.get("StartDir", "")
 
-        new_exe = str(exe)
-        new_start_dir = str(start_dir)
+        # Steam stores these fields as command-line values. The quotes are
+        # part of the value in shortcuts.vdf and are required because the
+        # paths contain spaces.
+        new_exe = quote_steam_path(exe)
+        new_start_dir = quote_steam_path(start_dir)
 
         if old_exe == new_exe and old_start_dir == new_start_dir:
             print("Shortcut is already up to date.")
