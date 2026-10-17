@@ -2,6 +2,8 @@
 
 import os
 import re
+import shlex
+import subprocess
 from pathlib import Path
 
 import vdf
@@ -113,6 +115,26 @@ def quote_steam_path(path):
     return f"\"{path}\""
 
 
+def update_ea_background_service(new_version_dir):
+    """Update the EA Background Service executable path in the prefix."""
+
+    wine_command = (
+        'wine reg add '
+        '"HKLM\\\\SYSTEM\\\\CurrentControlSet\\\\Services\\\\EABackgroundService" '
+        '/v ImagePath '
+        '/t REG_EXPAND_SZ '
+        f'/d "\\"C:\\\\Program Files\\\\Electronic Arts\\\\EA Desktop\\\\'
+        f'{new_version_dir.name}\\\\EA Desktop\\\\EABackgroundService.exe\\"" '
+        '/f'
+    )
+    command = ["protontricks", "-c", wine_command, STEAM_APP_ID]
+
+    print()
+    print("Updating EA Background Service path:")
+    print(f"  {shlex.join(command)}")
+    subprocess.run(command, check=True)
+
+
 def update_shortcut(new_version_dir):
     """Update the EA Games Steam shortcut."""
 
@@ -170,6 +192,11 @@ def update_shortcut(new_version_dir):
 
         print()
         print(f"Updated EA Games shortcut to {new_version_dir.name}")
+
+        update_ea_background_service(new_version_dir)
+
+        print()
+        print(f"Updated EA Games service")
         return
 
     raise RuntimeError(
